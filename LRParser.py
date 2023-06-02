@@ -131,75 +131,105 @@ CFG = {
     38: {'from': 'ODECL', 'to': ''},
 }
 
-input_file = sys.argv[1]
-
-# inputString = "class id lbrace vtype id semi vtype id semi vtype id lparen rparen lbrace vtype id semi return literal semi rbrace vtype id lparen rparen lbrace vtype id semi return literal semi rbrace rbrace $"
 inputSequence = []
-
 
 # initialization
 index = 0
 stateStack = [0]
 
-with open(input_file, 'r', newline='\n') as filereader:
+# variables for exception
+lineCount = 0
+symbolCount = 1
+
+# filereader를 통해 인자로 넘겨받은 파일 읽어들이기
+input_file = sys.argv[1]
+with open(input_file, 'r', newline='') as filereader:
+
+  # 각 줄을 읽어들일 때 <newline> symbole을 넣어서, 행 구분이 가능하도록 만들기
   for row in filereader:
-    if (row.strip() != ""):
-      inputSequence += row.strip().split(' ')
+      inputSequence.append('<newline>') 
+      if (row.strip() != ""):
+        inputSequence += row.strip().split(' ')
+  # 파일 입력 종료를 의미하는 $ symbol을 삽입
+  inputSequence.append('$')
 
-while not inputSequence.__contains__("CODE"):
+  # 읽어들인 문자열 중 공백을 제거하여, 빈 문자열을 terminal로 인식하지 않도록 전처리
+  inputSequence = list(filter(None, inputSequence))
 
-    print("Stack :", stateStack)
-    print("Index :", index)
-    print(inputSequence)
-    print("Next Input Symbol :", inputSequence[index])
-    print("Decision :", SLRTable[stateStack[-1]][inputSequence[index]], "\n")
-    
-    try:
-        # 현재 stack 의 top 을 테이블에서 찾는 과정
+  # 전체 파일에 대해 CODE 가 등장할 때까지 반복문 돌기
+  while not inputSequence.__contains__("CODE"):
+      try:
+          # 새로운 행에 대한 처리가 시작되면, 줄 번호 + 1, 기호 번호 초기화, <newline> symbol을 제거
+          if inputSequence[index] == '<newline>':
+            lineCount += 1
+            symbolCount = 1
+            inputSequence.pop(index)
+            continue
 
-        # 테이블과 inputSequence 를 토대로 현 index 에서는 
-        # 어떤 action 을 취할지 decision 으로 한 번에 관리
-        decision = SLRTable[stateStack[-1]][inputSequence[index]]
+          print("Stack :", stateStack)
+          print("Index :", index)
+          # print(inputSequence)
+          print("Next Input Symbol :", inputSequence[index])
+          print("Decision :", SLRTable[stateStack[-1]][inputSequence[index]], "\n")
+      
+          # 현재 stack 의 top 을 테이블에서 찾는 과정
 
-        # 만약 table 에서 찾은 decision 이 s<number> 라면, "goto <number>" & "shift"
-        if decision.__contains__("s"):
-            # goto <number>
-            nextState = int(decision.strip("s"))
-            stateStack.append(nextState)
-            # shift
-            index += 1
+          # 테이블과 inputSequence 를 토대로 현 index 에서는 
+          # 어떤 action 을 취할지 decision 으로 한 번에 관리
+          decision = SLRTable[stateStack[-1]][inputSequence[index]]
 
-        # 만약 table 에서 찾은 decision 이 r<number> 라면, "pop stack" & "reduce by CFG<number> RHS 의 크기" 
-        elif decision.__contains__("r"):
-            
-            # 현재 사용할 CFG 찾기
-            cfg = CFG[int(decision.strip("r"))]
+          # 만약 table 에서 찾은 decision 이 s<number> 라면, "goto <number>" & "shift"
+          if decision.__contains__("s"):
+              # goto <number>
+              nextState = int(decision.strip("s"))
+              stateStack.append(nextState)
+              # shift
+              index += 1
+              symbolCount += 1
 
-            # 지금 사용하는 CFG 는 뭔지 표시
-            print("--- remove with :", cfg, "\n")
+          # 만약 table 에서 찾은 decision 이 r<number> 라면, "pop stack" & "reduce by CFG<number> RHS 의 크기" 
+          elif decision.__contains__("r"):
+              
+              # 현재 사용할 CFG 찾기
+              cfg = CFG[int(decision.strip("r"))]
 
-            # "reduce by CFG<number> RHS 의 크기" 
-            # for A -> ɑ 에서 |ɑ| 만큼 stack 에서 pop 하기
-            popCnt = len(cfg["to"].split(" "))  # |ɑ| 의 크기 구하기
+              # 지금 사용하는 CFG 는 뭔지 표시
+              print("--- remove with :", cfg, "\n")
 
-            # ɑ 가 ε 이 아닐 때 ( ɑ 가 ε 일 때에는 pop 해주면 안되기 때문 )
-            if cfg["to"] != "":
-                for i in range(0, popCnt):
-                    stateStack.pop()
-                    inputSequence.pop(index-1)
-                    index -= 1
+              # "reduce by CFG<number> RHS 의 크기" 
+              # for A -> ɑ 에서 |ɑ| 만큼 stack 에서 pop 하기
+              popCnt = len(cfg["to"].split(" "))  # |ɑ| 의 크기 구하기
 
-            # from A -> ɑ , ɑ 부분 A 로 바꿔주기
-            push = cfg['from']
-            inputSequence.insert(index, push)
+              # ɑ 가 ε 이 아닐 때 ( ɑ 가 ε 일 때에는 pop 해주면 안되기 때문 )
+              if cfg["to"] != "":
+                  for i in range(0, popCnt):
+                      stateStack.pop()
+                      inputSequence.pop(index-1)
+                      index -= 1
 
-            # goto <number>
-            stateStack.append(SLRTable[stateStack[-1]][inputSequence[index]])
-            index += 1
+              # from A -> ɑ , ɑ 부분 A 로 바꿔주기
+              push = cfg['from']
+              inputSequence.insert(index, push)
 
-    except Exception as e:
-       print("error with parsing", e)
-       break
+              # goto <number>
+              stateStack.append(SLRTable[stateStack[-1]][inputSequence[index]])
+              index += 1
 
-if inputSequence.__contains__("CODE"):
-    print("success")
+      # 잘못된 입력으로 transition이 불가한 경우
+      except KeyError as e:
+        # 잘못 들어온 symbol의 위치를 출력
+        print("error with parsing at line ", lineCount, ", symbol number ",symbolCount," \"", inputSequence[index], "\"", sep='')
+        break
+
+      # Exception에 대한 처리
+      except Exception as e:
+        print("error with", e)
+        break
+
+      # Index Error에 대한 처리
+      except IndexError() as e:
+        print("error with", e)
+        break
+
+  if inputSequence.__contains__("CODE"):
+      print("success")
