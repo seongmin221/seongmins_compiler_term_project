@@ -1,3 +1,5 @@
+import sys
+
 SLRTable = {
   0 : {'vtype' : 's5', 'class': 's6', '$': 'r4', 'CODE': 1, 'VDECL' : 2, 'FDECL' : 3, 'CDECL': 4},
   1 : {'$': 'acc'},
@@ -129,15 +131,20 @@ CFG = {
     38: {'from': 'ODECL', 'to': ''},
 }
 
+input_file = sys.argv[1]
 
-inputString = "class id lbrace vtype id semi vtype id semi vtype id lparen rparen lbrace vtype id semi return literal semi rbrace vtype id lparen rparen lbrace vtype id semi return literal semi rbrace rbrace $"
+# inputString = "class id lbrace vtype id semi vtype id semi vtype id lparen rparen lbrace vtype id semi return literal semi rbrace vtype id lparen rparen lbrace vtype id semi return literal semi rbrace rbrace $"
+inputSequence = []
 
-inputSequence = inputString.split(' ')
 
 # initialization
 index = 0
 stateStack = [0]
 
+with open(input_file, 'r', newline='\n') as filereader:
+  for row in filereader:
+    if (row.strip() != ""):
+      inputSequence += row.strip().split(' ')
 
 while not inputSequence.__contains__("CODE"):
 
