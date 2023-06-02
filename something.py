@@ -1,5 +1,3 @@
-import time
-
 SLRTable = {
   0 : {'vtype' : 's5', 'class': 's6', '$': 'r4', 'CODE': 1, 'VDECL' : 2, 'FDECL' : 3, 'CDECL': 4},
   1 : {'$': 'acc'},
@@ -37,16 +35,16 @@ SLRTable = {
   33 : {'lbrace': 's41'},
   34 : {'rparen': 'r23', 'comma': 's43', 'MOREARGS': 42},
   35 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'EXPR': 44, 'T': 25, 'F': 26},
-  36 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'F': 45},
-  37 : {'addsub': 's35', 'rparen': 's46'},
+  36 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'T': 45, 'F': 26},
+  37 : {'rparen': 's46'},
   38 : {'vtype': 'r35', 'class': 'r35', '$': 'r35'},
   39 : {'rbrace': 'r36'},
   40 : {'rbrace': 'r37'},
   41 : {'vtype': 's53', 'id': 's54', 'rbrace': 'r25', 'if': 's51', 'while': 's52', 'return': 'r25', 'VDECL': 49, 'ASSIGN': 50, 'BLOCK': 47, 'STMT': 48},
   42 : {'rparen': 'r20'},
   43 : {'vtype': 's55'},
-  44 : {'semi': 'r12', 'addsub': 'r12', 'multdiv': 's36', 'rparen': 'r12'},
-  45 : {'semi': 'r14', 'addsub': 'r14', 'multdiv': 'r14', 'rparen': 'r14'},
+  44 : {'semi': 'r12', 'rparen': 'r12'},
+  45 : {'semi': 'r14', 'addsub': 'r14', 'rparen': 'r14'},
   46 : {'semi': 'r16', 'addsub': 'r16', 'multdiv': 'r16', 'rparen': 'r16'},
   47 : {'return': 's57', 'RETURN': 56},
   48 : {'vtype': 's53', 'id': 's54', 'rbrace': 'r25', 'if': 's51', 'while': 's52', 'return': 'r25', 'VDECL': 49, 'ASSIGN': 50, 'BLOCK': 58, 'STMT': 48},
@@ -130,32 +128,6 @@ CFG = {
     37: {'from': 'ODECL', 'to': 'FDECL ODECL'},
     38: {'from': 'ODECL', 'to': ''},
 }
-
-# while index < inputCnt:
-#   try:
-#     print("State :", stack[0])
-#     print("Stack :", stack)
-#     print("Next Input Symbol :", inputSequence[index])
-#     print("Decision :", SLRTable[stack[0]][inputSequence[index]], "\n")
-    
-#     if SLRTable[stack[0]][inputSequence[index]].__contains__("s"):
-#       nextState = int(SLRTable[stack[0]][inputSequence[index]].strip("s"))
-#       # 다음 state를 stack 의 top에 push
-#       stack.append(nextState)
-#       index += 1
-
-#     elif SLRTable[stack[0]][inputSequence[index]].__contains__("r"):
-#       stack.pop()
-      
-
-#     else:
-#       print("else")
-#       index += 1
-
-#   except Exception as e:
-#     print("error with parsing", e)
-#     break
-
 
 
 inputString = "class id lbrace vtype id semi vtype id semi vtype id lparen rparen lbrace vtype id semi return literal semi rbrace vtype id lparen rparen lbrace vtype id semi return literal semi rbrace rbrace $"
