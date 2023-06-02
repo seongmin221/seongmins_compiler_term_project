@@ -86,7 +86,7 @@ SLRTable = {
   82 : {'lbrace': 's83'},
   83 : {'vtype': 's53', 'id': 's54', 'rbrace': 'r25', 'if': 's51', 'while': '52', 'return': 'r25', 'VDECL': 49, 'ASSIGN': 50, 'BLOCK': 84, 'STMT': 48},
   84 : {'rbrace': 's85'},
-  85 : {'vtype': 'r32', 'id': 'r32', 'rbrace': 'r32', 'if': 'r32', 'while': 'r32'}
+  85 : {'vtype': 'r32', 'id': 'r32', 'rbrace': 'r32', 'if': 'r32', 'while': 'r32', 'return': 'r32'}
 }
 
 CFG = {
@@ -106,7 +106,7 @@ CFG = {
     13: {'from': 'EXPR', 'to': 'T'},
     14: {'from': 'T', 'to': 'T multdiv F'},
     15: {'from': 'T', 'to': 'F'},
-    16: {'from': 'F', 'to': 'lparen E rparen'},
+    16: {'from': 'F', 'to': 'lparen EXPR rparen'},
     17: {'from': 'F', 'to': 'id'},
     18: {'from': 'F', 'to': 'num'},
     19: {'from': 'FDECL', 'to': 'vtype id lparen ARG rparen lbrace BLOCK RETURN rbrace'},
@@ -158,54 +158,67 @@ CFG = {
 
 
 
-inputString = "class id lbrace rbrace $"
+inputString = "vtype id lparen rparen lbrace vtype id semi return literal semi rbrace $"
+
 inputSequence = inputString.split(' ')
-inputCnt = len(inputSequence)
 
 # initialization
 index = 0
-stack = [0]
+stateStack = [0]
 
 
-while index < inputCnt:
+while not inputSequence.__contains__("CODE"):
 
-    print("State :", stack[-1])
-    print("Stack :", stack)
+    print("Stack :", stateStack)
     print("Index :", index)
     print(inputSequence)
     print("Next Input Symbol :", inputSequence[index])
-    print("Decision :", SLRTable[stack[-1]][inputSequence[index]], "\n")
+    print("Decision :", SLRTable[stateStack[-1]][inputSequence[index]], "\n")
     
     try:
         # 현재 stack 의 top 을 테이블에서 찾는 과정
-        
+        decision = SLRTable[stateStack[-1]][inputSequence[index]]
         # 만약 table 에서 찾은 값이 s<number> 라면, "goto <number>" & "shift"
-        if SLRTable[stack[-1]][inputSequence[index]].__contains__("s"):
+        if decision.__contains__("s"):
             # goto <number>
-            nextState = int(SLRTable[stack[-1]][inputSequence[index]].strip("s"))
-            stack.append(nextState)
+            nextState = int(decision.strip("s"))
+            stateStack.append(nextState)
             # shift
             index += 1
 
         # 만약 table 에서 찾은 값이 r<number> 라면, "pop stack" & "reduce by CFG<number>" 
-        elif SLRTable[stack[-1]][inputSequence[index]].__contains__("r"):
-            # reduce with CFG<number>
-            cfgNum = int(SLRTable[stack[-1]][inputSequence[index]].strip("r"))
+        elif decision.__contains__("r"):
+            # find CFG<number>
+            cfgNum = int(decision.strip("r"))   # r 뒤에 숫자 가져오기
+            cfg = CFG[cfgNum]                   # 그에 해당하는 CFG 가져오기
 
-            # for A -> ?? pop |??| contents from stack
-            popCnt = len(CFG[cfgNum]['to'].split(" "))
-            for i in range(0, popCnt):
-                stack.pop()
+            print("--- remove with :", cfg, "\n")
 
-            inputSequence.pop()
+            # for A -> ɑ pop |ɑ| contents from stack
+            popCnt = len(cfg["to"].split(" "))  # |ɑ| 의 크기 구하기
+            # 만약 ɑ 가 ε 이라면 ?
+
+            if cfg["to"] != "":
+                for i in range(0, popCnt):
+                    stateStack.pop()
+                    inputSequence.pop(index-1)
+                    index -= 1
+
+            # from A -> ?? , reduce with A
             push = CFG[cfgNum]['from']
-            inputSequence.append(push)
+            inputSequence.insert(index, push)
+            
+            # if cfg["to"] == "":
+            #     index += 1
+            # print(SLRTable[stateStack[-1]][inputSequence[index]])
 
             # GOTO
-            stack.append()
-
-        time.sleep(1)
+            stateStack.append(SLRTable[stateStack[-1]][inputSequence[index]])
+            index += 1
 
     except Exception as e:
        print("error with parsing", e)
        break
+
+if inputSequence.__contains__("CODE"):
+    print("success")
