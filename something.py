@@ -22,13 +22,13 @@ SLRTable = {
   18 : {'rparen': 's33'},
   19 : {'id': 's34'},
   20 : {'semi': 'r7'},
-  21 : {'semi': 'r8', 'addsub': 's35'},
+  21 : {'semi': 'r8'},
   22 : {'semi': 'r9'},
   23 : {'semi': 'r10'},
   24 : {'semi': 'r11'},
-  25 : {'semi': 'r13', 'addsub': 'r13', 'multdiv': 's36', 'rparen': 'r13'},
-  26 : {'semi': 'r15', 'addsub': 'r15', 'multdiv': 'r15', 'rparen': 'r15'},
-  27 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'RHS': 37, 'T': 25, 'F': 26},
+  25 : {'semi': 'r13', 'addsub': 's35', 'rparen': 'r13'},
+  26 : {'semi': 'r15', 'addsub': 'r15', 'multdiv': 's36', 'rparen': 'r15'},
+  27 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'EXPR': 37, 'T': 25, 'F': 26},
   28 : {'semi': 'r17', 'addsub': 'r17', 'multdiv': 'r17', 'rparen': 'r17'},
   29 : {'semi': 'r18', 'addsub': 'r18', 'multdiv': 'r18', 'rparen': 'r18'},
   30 : {'rbrace': 's38'},
@@ -43,7 +43,7 @@ SLRTable = {
   39 : {'rbrace': 'r36'},
   40 : {'rbrace': 'r37'},
   41 : {'vtype': 's53', 'id': 's54', 'rbrace': 'r25', 'if': 's51', 'while': 's52', 'return': 'r25', 'VDECL': 49, 'ASSIGN': 50, 'BLOCK': 47, 'STMT': 48},
-  42 : {'rparen': 'r29'},
+  42 : {'rparen': 'r20'},
   43 : {'vtype': 's55'},
   44 : {'semi': 'r12', 'addsub': 'r12', 'multdiv': 's36', 'rparen': 'r12'},
   45 : {'semi': 'r14', 'addsub': 'r14', 'multdiv': 'r14', 'rparen': 'r14'},
@@ -102,9 +102,9 @@ CFG = {
     9: {'from': 'RHS', 'to': 'literal'}, 
     10: {'from': 'RHS', 'to': 'character'}, 
     11: {'from': 'RHS', 'to': 'boolstr'},
-    12: {'from': 'EXPR', 'to': 'EXPR addsub T'},
+    12: {'from': 'EXPR', 'to': 'T addsub EXPR'},
     13: {'from': 'EXPR', 'to': 'T'},
-    14: {'from': 'T', 'to': 'T multdiv F'},
+    14: {'from': 'T', 'to': 'F multdiv T'},
     15: {'from': 'T', 'to': 'F'},
     16: {'from': 'F', 'to': 'lparen EXPR rparen'},
     17: {'from': 'F', 'to': 'id'},
@@ -158,7 +158,7 @@ CFG = {
 
 
 
-inputString = "vtype id lparen rparen lbrace vtype id semi return literal semi rbrace $"
+inputString = "vtype id lparen vtype id rparen lbrace id assign id addsub id multdiv num addsub num semi vtype id semi return literal semi rbrace $"
 
 inputSequence = inputString.split(' ')
 
@@ -177,7 +177,10 @@ while not inputSequence.__contains__("CODE"):
     
     try:
         # 현재 stack 의 top 을 테이블에서 찾는 과정
+
+        # 이번에는 어떤 결정을 내릴지 ?
         decision = SLRTable[stateStack[-1]][inputSequence[index]]
+
         # 만약 table 에서 찾은 값이 s<number> 라면, "goto <number>" & "shift"
         if decision.__contains__("s"):
             # goto <number>
@@ -194,9 +197,8 @@ while not inputSequence.__contains__("CODE"):
 
             print("--- remove with :", cfg, "\n")
 
-            # for A -> ɑ pop |ɑ| contents from stack
+            # for A -> ɑ 에서 |ɑ| 만큼 stack 에서 pop 하기
             popCnt = len(cfg["to"].split(" "))  # |ɑ| 의 크기 구하기
-            # 만약 ɑ 가 ε 이라면 ?
 
             if cfg["to"] != "":
                 for i in range(0, popCnt):
@@ -207,10 +209,6 @@ while not inputSequence.__contains__("CODE"):
             # from A -> ?? , reduce with A
             push = CFG[cfgNum]['from']
             inputSequence.insert(index, push)
-            
-            # if cfg["to"] == "":
-            #     index += 1
-            # print(SLRTable[stateStack[-1]][inputSequence[index]])
 
             # GOTO
             stateStack.append(SLRTable[stateStack[-1]][inputSequence[index]])
