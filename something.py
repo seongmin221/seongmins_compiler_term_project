@@ -36,7 +36,7 @@ SLRTable = {
   32 : {'vtype': 's5', 'rbrace': 'r38', 'VDECL': 31, 'FDECL': 32, 'ODECL': 40},
   33 : {'lbrace': 's41'},
   34 : {'rparen': 'r23', 'comma': 's43', 'MOREARGS': 42},
-  35 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'T': 44, 'F': 26},
+  35 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'EXPR': 44, 'T': 25, 'F': 26},
   36 : {'id': 's28', 'lparen': 's27', 'num': 's29', 'F': 45},
   37 : {'addsub': 's35', 'rparen': 's46'},
   38 : {'vtype': 'r35', 'class': 'r35', '$': 'r35'},
@@ -158,7 +158,7 @@ CFG = {
 
 
 
-inputString = "vtype id lparen vtype id rparen lbrace id assign id addsub id multdiv num addsub num semi vtype id semi return literal semi rbrace $"
+inputString = "class id lbrace vtype id semi vtype id semi vtype id lparen rparen lbrace vtype id semi return literal semi rbrace vtype id lparen rparen lbrace vtype id semi return literal semi rbrace rbrace $"
 
 inputSequence = inputString.split(' ')
 
