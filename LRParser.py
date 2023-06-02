@@ -150,10 +150,11 @@ while not inputSequence.__contains__("CODE"):
     try:
         # 현재 stack 의 top 을 테이블에서 찾는 과정
 
-        # 이번에는 어떤 결정을 내릴지 ?
+        # 테이블과 inputSequence 를 토대로 현 index 에서는 
+        # 어떤 action 을 취할지 decision 으로 한 번에 관리
         decision = SLRTable[stateStack[-1]][inputSequence[index]]
 
-        # 만약 table 에서 찾은 값이 s<number> 라면, "goto <number>" & "shift"
+        # 만약 table 에서 찾은 decision 이 s<number> 라면, "goto <number>" & "shift"
         if decision.__contains__("s"):
             # goto <number>
             nextState = int(decision.strip("s"))
@@ -161,28 +162,31 @@ while not inputSequence.__contains__("CODE"):
             # shift
             index += 1
 
-        # 만약 table 에서 찾은 값이 r<number> 라면, "pop stack" & "reduce by CFG<number>" 
+        # 만약 table 에서 찾은 decision 이 r<number> 라면, "pop stack" & "reduce by CFG<number> RHS 의 크기" 
         elif decision.__contains__("r"):
-            # find CFG<number>
-            cfgNum = int(decision.strip("r"))   # r 뒤에 숫자 가져오기
-            cfg = CFG[cfgNum]                   # 그에 해당하는 CFG 가져오기
+            
+            # 현재 사용할 CFG 찾기
+            cfg = CFG[int(decision.strip("r"))]
 
+            # 지금 사용하는 CFG 는 뭔지 표시
             print("--- remove with :", cfg, "\n")
 
+            # "reduce by CFG<number> RHS 의 크기" 
             # for A -> ɑ 에서 |ɑ| 만큼 stack 에서 pop 하기
             popCnt = len(cfg["to"].split(" "))  # |ɑ| 의 크기 구하기
 
+            # ɑ 가 ε 이 아닐 때 ( ɑ 가 ε 일 때에는 pop 해주면 안되기 때문 )
             if cfg["to"] != "":
                 for i in range(0, popCnt):
                     stateStack.pop()
                     inputSequence.pop(index-1)
                     index -= 1
 
-            # from A -> ?? , reduce with A
-            push = CFG[cfgNum]['from']
+            # from A -> ɑ , ɑ 부분 A 로 바꿔주기
+            push = cfg['from']
             inputSequence.insert(index, push)
 
-            # GOTO
+            # goto <number>
             stateStack.append(SLRTable[stateStack[-1]][inputSequence[index]])
             index += 1
 
