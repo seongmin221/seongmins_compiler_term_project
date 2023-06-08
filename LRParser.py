@@ -1,4 +1,5 @@
 import sys
+from ParseTree import ParseTree
 
 SLRTable = {
   0 : {'vtype' : 's5', 'class': 's6', '$': 'r4', 'CODE': 1, 'VDECL' : 2, 'FDECL' : 3, 'CDECL': 4},
@@ -132,6 +133,7 @@ CFG = {
 }
 
 inputSequence = []
+parseTree = []
 
 # initialization
 index = 0
@@ -145,7 +147,7 @@ symbolCount = 1
 input_file = sys.argv[1]
 with open(input_file, 'r', newline='') as filereader:
 
-  # 각 줄을 읽어들일 때 <newline> symbole을 넣어서, 행 구분이 가능하도록 만들기
+  # 각 줄을 읽어들일 때 <newline> symbol을 넣어서, 행 구분이 가능하도록 만들기
   for row in filereader:
       inputSequence.append('<newline>') 
       if (row.strip() != ""):
@@ -156,8 +158,14 @@ with open(input_file, 'r', newline='') as filereader:
   # 읽어들인 문자열 중 공백을 제거하여, 빈 문자열을 terminal로 인식하지 않도록 전처리
   inputSequence = list(filter(None, inputSequence))
 
+  # 미리 leaf node 들을 inputSequence 를 통해 만들어두기
+  for leaf in inputSequence:
+     if leaf != "<newline>":
+      parseTree.append(ParseTree(leaf))
+  parseTree.pop(0)
+
   # 전체 파일에 대해 CODE 가 등장할 때까지 반복문 돌기
-  while not inputSequence.__contains__("CODE"):
+  while True:
       try:
           # 새로운 행에 대한 처리가 시작되면, 줄 번호 + 1, 기호 번호 초기화, <newline> symbol을 제거
           if inputSequence[index] == '<newline>':
@@ -165,13 +173,16 @@ with open(input_file, 'r', newline='') as filereader:
             symbolCount = 1
             inputSequence.pop(index)
             continue
+          
 
-          print("Stack :", stateStack)
-          print("Index :", index)
-          # print(inputSequence)
-          print("Next Input Symbol :", inputSequence[index])
-          print("Decision :", SLRTable[stateStack[-1]][inputSequence[index]], "\n")
+          # ----- DEBUGGING ----- #
+          # print("Current States :", inputSequence)
+          # print("Stack :", stateStack)
+          # print("Index :", index)
+          # print("Next Input Symbol :", inputSequence[index])
+          # print("Decision :", SLRTable[stateStack[-1]][inputSequence[index]], "\n")
       
+
           # 현재 stack 의 top 을 테이블에서 찾는 과정
 
           # 테이블과 inputSequence 를 토대로 현 index 에서는 
@@ -193,8 +204,15 @@ with open(input_file, 'r', newline='') as filereader:
               # 현재 사용할 CFG 찾기
               cfg = CFG[int(decision.strip("r"))]
 
+
+              # ----- DEBUGGING ----- #
               # 지금 사용하는 CFG 는 뭔지 표시
-              print("--- remove with :", cfg, "\n")
+              # print("--- remove with :", cfg, "\n")
+
+
+              # parseTree 에 children 을 추가하기 위해
+              # 현재 CFG 에서 remove 될 sequence 를 childrent 으로 가질 node
+              tempRoot = ParseTree(cfg['from'])
 
               # "reduce by CFG<number> RHS 의 크기" 
               # for A -> ɑ 에서 |ɑ| 만큼 stack 에서 pop 하기
@@ -205,15 +223,24 @@ with open(input_file, 'r', newline='') as filereader:
                   for i in range(0, popCnt):
                       stateStack.pop()
                       inputSequence.pop(index-1)
+                      tempRoot.addChild(parseTree.pop(index-1))
                       index -= 1
+              else:
+                 tempRoot.addChild(ParseTree("ε"))
 
               # from A -> ɑ , ɑ 부분 A 로 바꿔주기
               push = cfg['from']
               inputSequence.insert(index, push)
 
+              # remove 를 통해 생긴 symbol 추가
+              parseTree.insert(index, tempRoot)
+
               # goto <number>
               stateStack.append(SLRTable[stateStack[-1]][inputSequence[index]])
               index += 1
+          
+          elif inputSequence.__contains__("CODE"):
+             break
 
       # 잘못된 입력으로 transition이 불가한 경우
       except KeyError as e:
@@ -233,3 +260,4 @@ with open(input_file, 'r', newline='') as filereader:
 
   if inputSequence.__contains__("CODE"):
       print("success")
+      print(parseTree[0])
