@@ -162,7 +162,6 @@ with open(input_file, 'r', newline='') as filereader:
   for leaf in inputSequence:
      if leaf != "<newline>":
       parseTree.append(ParseTree(leaf))
-  parseTree.pop(0)
 
   # 전체 파일에 대해 CODE 가 등장할 때까지 반복문 돌기
   while True:
