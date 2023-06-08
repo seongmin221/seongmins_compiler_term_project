@@ -186,7 +186,7 @@ with open(input_file, 'r', newline='') as filereader:
           # 현재 stack 의 top 을 테이블에서 찾는 과정
 
           # 테이블과 inputSequence 를 토대로 현 index 에서는 
-          # 어떤 action 을 취할지 decision 으로 한 번에 관리
+          # 어떤 action 을 취할지 decision 변수로 관리
           decision = SLRTable[stateStack[-1]][inputSequence[index]]
 
           # 만약 table 에서 찾은 decision 이 s<number> 라면, "goto <number>" & "shift"
@@ -250,11 +250,6 @@ with open(input_file, 'r', newline='') as filereader:
 
       # Exception에 대한 처리
       except Exception as e:
-        print("error with", e)
-        break
-
-      # Index Error에 대한 처리
-      except IndexError() as e:
         print("error with", e)
         break
 
