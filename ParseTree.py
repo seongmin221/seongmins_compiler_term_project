@@ -14,9 +14,3 @@ class ParseTree:
     
     def addChild(self, child):
         self.children.insert(0, child)
-
-    def addChildren(self, children):
-        temp = children.split(" ")
-        for child in temp:
-            self.children.append(ParseTree(child))
-
