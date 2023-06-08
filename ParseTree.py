@@ -2,9 +2,9 @@
 
 class ParseTree:
 
-    def __init__(self, root, children = []):
+    def __init__(self, root):
         self.key = root
-        self.children = children or []
+        self.children = []
 
     def __repr__(self, level=0):
         ret = "|  " * level + repr(self.key) + "\n"
