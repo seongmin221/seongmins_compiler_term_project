@@ -1,5 +1,4 @@
 import sys
-from ParseTree import ParseTree
 
 SLRTable = {
   0 : {'vtype' : 's5', 'class': 's6', '$': 'r4', 'CODE': 1, 'VDECL' : 2, 'FDECL' : 3, 'CDECL': 4},
@@ -131,6 +130,26 @@ CFG = {
     37: {'from': 'ODECL', 'to': 'FDECL ODECL'},
     38: {'from': 'ODECL', 'to': ''},
 }
+
+
+# Parse tree 생성하기 위한 자료구조
+class ParseTree:
+
+    def __init__(self, root):
+        self.key = root
+        self.children = []
+
+    def __repr__(self, level=0):
+        ret = "|  " * level + repr(self.key) + "\n"
+        for child in self.children:
+            ret += child.__repr__(level+1)
+        return ret
+    
+    # node 에 child node 를 추가하는 메소드
+    def addChild(self, child):
+        self.children.insert(0, child)
+
+
 
 inputSequence = []
 parseTree = []
